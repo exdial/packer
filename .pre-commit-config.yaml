@@ -1,0 +1,13 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-shebang-scripts-are-executable
+- repo: git@github.com:exdial/pre-commit-hooks.git
+  rev: e3433e140adaa767ddf14f1abfa9066a7ec6fae7
+  hooks:
+  - id: packer-validate
+  - id: packer-fmt
