@@ -1,7 +1,7 @@
-iso_url = "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso"
+iso_url      = "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso"
 iso_checksum = "file:http://releases.ubuntu.com/22.04/SHA256SUMS"
-vm_name = "jammy"
-headless = true
+vm_name      = "jammy"
+headless     = true
 boot_command = [
   "<tab><tab><tab><tab><tab><wait>",
   "c<wait2>",

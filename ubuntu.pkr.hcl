@@ -13,22 +13,24 @@ packer {
   }
 }
 
+# The default value is requred by `packer validate` command
 variable "iso_url" {
   type    = string
   description = "The URL of the OS image file."
-  default = ""
+  default = "null"
 }
 
+# The default value here is md5 from "null".
 variable "iso_checksum" {
   type    = string
   description = "The checksum value of `iso_url`."
-  default = ""
+  default = "674441960ca1ba2de08ad4e50c9fde98"
 }
 
 variable "vm_name" {
   type    = string
   description = "The name of the host."
-  default = ""
+  default = "null"
 }
 
 variable "boot_command" {
@@ -98,7 +100,7 @@ source "virtualbox-iso" "ubuntu" {
   # Instead of keeping an empty meta-data file in the repository,
   # serve the empty location "/meta-data" by HTTP.
   http_content = {
-    "/user-data" = templatefile("../http/user-data.pkrtpl.hcl", { var = var }),
+    "/user-data" = templatefile("http/user-data.pkrtpl.hcl", { var = var }),
     "/meta-data" = ""
   }
 

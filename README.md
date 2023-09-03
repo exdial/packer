@@ -14,4 +14,4 @@ It supports a large variety of cloud infrastructures.
 
 ## Building
 
-`packer -var-file=(ci|prod).pkrvars.hcl 20-04-focal.pkr.hcl`
+`packer build -var-file=vars/(focal|jammy).pkvars.hcl ubuntu.pkr.hcl`

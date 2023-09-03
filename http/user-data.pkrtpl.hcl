@@ -11,7 +11,7 @@ autoinstall:
       version: 2
       ethernets:
         enp0s3:
-          dhcp4: yes
+          dhcp4: true
   identity:
     hostname: ${var.vm_name}
     username: ${var.ssh_username}
