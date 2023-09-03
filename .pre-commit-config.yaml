@@ -11,6 +11,3 @@ repos:
   hooks:
   - id: packer-validate
   - id: packer-fmt
-  - id: terraform-validate
-  - id: terraform-fmt
-  - id: terragrunt-hclfmt
