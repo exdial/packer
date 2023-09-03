@@ -15,17 +15,26 @@ packer {
 
 variable "iso_url" {
   type    = string
-  default = "https://releases.ubuntu.com/20.04.6/ubuntu-20.04.6-live-server-amd64.iso"
+  description = "The URL of the OS image file."
+  default = ""
 }
 
 variable "iso_checksum" {
   type    = string
-  default = "file:http://releases.ubuntu.com/20.04/SHA256SUMS"
+  description = "The checksum value of `iso_url`."
+  default = ""
 }
 
 variable "vm_name" {
   type    = string
-  default = "focal"
+  description = "The name of the host."
+  default = ""
+}
+
+variable "boot_command" {
+  type    = list(string)
+  description = "Keys to type when the vm is first booted."
+  default = []
 }
 
 variable "ssh_username" {
@@ -51,6 +60,12 @@ variable "ssh_forwarded_port" {
   default = "22222"
 }
 
+# Do not show GUI process by default
+variable "headless" {
+  type = bool
+  default = true
+}
+
 # Cloud-init will try to find "user-data" and "meta-data" files
 # right after the root location "/", so it is extremely important to use
 # the following datasource format: http://{{ .HTTPIP }}:{{ .HTTPPort }}/
@@ -59,7 +74,7 @@ variable "ssh_forwarded_port" {
 source "virtualbox-iso" "ubuntu" {
   vm_name       = var.vm_name
   guest_os_type = "Ubuntu_64"
-  headless      = true
+  headless      = var.headless
 
   iso_url      = var.iso_url
   iso_checksum = var.iso_checksum
@@ -83,7 +98,7 @@ source "virtualbox-iso" "ubuntu" {
   # Instead of keeping an empty meta-data file in the repository,
   # serve the empty location "/meta-data" by HTTP.
   http_content = {
-    "/user-data" = templatefile("http/user-data.pkrtpl.hcl", { var = var }),
+    "/user-data" = templatefile("../http/user-data.pkrtpl.hcl", { var = var }),
     "/meta-data" = ""
   }
 
@@ -100,20 +115,7 @@ source "virtualbox-iso" "ubuntu" {
   ]
   boot_wait              = "5s"
   boot_keygroup_interval = "500ms"
-  boot_command = [
-    "<tab><tab><tab><tab><tab><wait>",
-    "<esc><wait><f6><wait><esc><wait>",
-    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-    "/casper/vmlinuz <wait>",
-    "initrd=/casper/initrd autoinstall <wait>",
-    "quiet fsck.mode=skip net.ifnames=0 <wait>",
-    "biosdevname=0 systemd.unified_cgroup_hierarchy=0 <wait>",
-    "ds=nocloud-net;s=http://{{.HTTPIP}}:{{ .HTTPPort }}/ ---<wait3>",
-    "<enter>"
-  ]
+  boot_command           = var.boot_command
 }
 
 build {
@@ -138,6 +140,6 @@ build {
   post-processor "vagrant" {
     keep_input_artifact = false
     compression_level   = 9
-    output              = "output/{{ .Provider }}-ubuntu-20-04.box"
+    output              = "output/{{ .Provider }}-ubuntu-${var.vm_name}.box"
   }
 }
