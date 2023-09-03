@@ -7,7 +7,7 @@ repos:
   - id: check-yaml
   - id: check-shebang-scripts-are-executable
 - repo: https://github.com/exdial/pre-commit-hooks
-  rev: v0.0.5
+  rev: v0.0.6
   hooks:
   - id: packer-validate
   - id: packer-fmt
