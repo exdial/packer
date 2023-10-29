@@ -11,13 +11,13 @@ ISO_FILE="/tmp/VBoxGuestAdditions.iso"
 errdebug() {
   echo "Entering debug mode"
   echo "Connect via \"ssh vagrant@127.0.0.1 -p 22222\""
-  sleep 999999
+  sleep 3600
 }
 
 get_vagrant_key() {
   mkdir -p "$HOME_DIR"/.ssh
   curl -s -o "$HOME_DIR"/.ssh/authorized_keys \
-  https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+  https://raw.githubusercontent.com/hashicorp/vagrant/main/keys/vagrant.pub.ed25519
 }
 
 if get_vagrant_key; then
@@ -36,6 +36,7 @@ mount_guest_additions() {
 
 if mount_guest_additions; then
   apt-get update
+  DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y --no-install-recommends --fix-missing \
     ca-certificates gcc make bzip2 tar
   # Hack: VBoxLinuxAdditions.run every time exited with non-zero code,

@@ -2,25 +2,22 @@ packer {
   required_version = ">= 1.9.0"
 
   required_plugins {
-    virtualbox = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/virtualbox"
-    }
-    vagrant = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/vagrant"
+    vmware = {
+      version = "~> 1"
+      source = "github.com/hashicorp/vmware"
     }
   }
 }
 
-# The default value is requred by `packer validate` command
+# The default value is requred for the `packer validate` command
 variable "iso_url" {
   type    = string
   description = "The URL of the OS image file."
   default = "null"
 }
 
-# The default value here is md5 from "null".
+# The default value is required for the `packer validate` command.
+# The value here is md5 of "null".
 variable "iso_checksum" {
   type    = string
   description = "The checksum value of `iso_url`."
@@ -57,25 +54,15 @@ variable "ssh_password_sha256" {
   default = "$6$ihLAVm9evpqz$tqwrwpxQ89UdQtIOdBohtHU/2xrQJ4RgPLpDUXtGc1AGi42U1TFqB2oupVOSdnfXvMPREVb1uL/E0lr37MQ840"
 }
 
-variable "ssh_forwarded_port" {
-  type    = string
-  default = "22222"
-}
-
 # Do not show GUI process by default
 variable "headless" {
   type = bool
   default = true
 }
 
-# Cloud-init will try to find "user-data" and "meta-data" files
-# right after the root location "/", so it is extremely important to use
-# the following datasource format: http://{{ .HTTPIP }}:{{ .HTTPPort }}/
-# Otherwise, cloud-init ignores "user-data" file and will use its own
-# fallback datasource.
-source "virtualbox-iso" "ubuntu" {
-  vm_name       = var.vm_name
-  guest_os_type = "Ubuntu_64"
+source "vmware-iso" "ubuntu" {
+  vm_name = var.vm_name
+  #guest_os_type = "Ubuntu 64-bit"
   headless      = var.headless
 
   iso_url      = var.iso_url
@@ -86,13 +73,10 @@ source "virtualbox-iso" "ubuntu" {
   ssh_port               = 22
   ssh_timeout            = "20m"
   ssh_handshake_attempts = "40"
-  host_port_min          = var.ssh_forwarded_port
-  host_port_max          = var.ssh_forwarded_port
 
   cpus      = "2"
   memory    = "2048"
   disk_size = "7000"
-  format    = "ova"
 
   shutdown_command = "echo '${var.ssh_password}' | sudo -S shutdown -P now"
   output_directory = "builds"
@@ -104,24 +88,20 @@ source "virtualbox-iso" "ubuntu" {
     "/meta-data" = ""
   }
 
-  guest_additions_mode = "upload"
-  guest_additions_path = "/tmp/VBoxGuestAdditions.iso"
+  # The type of VMware virtual disk to create.
+  # Growable virtual disk contained in a single file (monolithic sparse).
+  disk_type_id = 0
 
-  vboxmanage = [
-    ["modifyvm", "{{ .Name }}", "--rtcuseutc", "off"],
-    ["setextradata", "{{ .Name }}", "GUI/SuppressMessages", "all"],
-    ["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
-    # Scale factor can be useful when debugging with the GUI enabled,
-    # when `headless = false`.
-    ["setextradata", "{{ .Name }}", "GUI/ScaleFactor", "2.20"]
-  ]
+  sound = false
+  usb = false
+
   boot_wait              = "5s"
   boot_keygroup_interval = "500ms"
   boot_command           = var.boot_command
 }
 
 build {
-  sources = ["source.virtualbox-iso.ubuntu"]
+  sources = ["source.vmware-iso.ubuntu"]
 
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S '{{ .Path }}'"
@@ -135,7 +115,7 @@ build {
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S '{{ .Path }}'"
     scripts = [
-      "http/provision.sh"
+      "http/vmware-provision.sh"
     ]
   }
 

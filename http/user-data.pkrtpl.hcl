@@ -10,8 +10,10 @@ autoinstall:
     network:
       version: 2
       ethernets:
-        enp0s3:
+        zz-all-en:
           dhcp4: true
+          match:
+            name: en*
   identity:
     hostname: ${var.vm_name}
     username: ${var.ssh_username}
