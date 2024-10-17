@@ -25,3 +25,7 @@ pushd vmware && packer init . && popd
 
 packer build -var-file=vars/focal.pkvars.hcl vmware/vmware.pkr.hcl
 ```
+
+## Feedback
+
+[Suggestions and improvements](https://github.com/exdial/packer/issues).
