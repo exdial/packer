@@ -120,7 +120,7 @@ build {
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S '{{ .Path }}'"
     scripts = [
-      "vmware.sh"
+      "vmware/vmware.sh"
     ]
   }
 

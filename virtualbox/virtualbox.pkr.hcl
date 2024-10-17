@@ -148,7 +148,7 @@ build {
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S '{{ .Path }}'"
     scripts = [
-      "virtualbox.sh"
+      "virtualbox/virtualbox.sh"
     ]
   }
 
