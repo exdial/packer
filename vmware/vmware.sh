@@ -33,7 +33,9 @@ ca-certificates open-vm-tools bzip2 tar
 snap remove --purge lxd
 snap remove --purge core20
 snap remove --purge snapd
-apt --purge autoremove -y snapd
+apt-get --purge autoremove -y snapd
 truncate -s 0 /etc/resolv.conf
+swapoff -a
 rm -rf /tmp/*
-rm -f /var/log/wtmp /var/log/btmp .bash_history
+rm -f /var/log/wtmp /var/log/btmp .bash_history /swap.img
+sed -i '/.*swap.*/d' /etc/fstab

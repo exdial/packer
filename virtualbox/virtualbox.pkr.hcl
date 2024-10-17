@@ -13,67 +13,80 @@ packer {
   }
 }
 
-# The default value is requred for the `packer validate` command
 variable "iso_url" {
-  type    = string
-  description = "The URL of the OS image file."
-  default = "null"
+  type        = string
+  description = "The URL of OS image file (is required for `packer validate`)"
+  default     = "null"
 }
 
-# The default value is required for the `packer validate` command.
-# The value here is md5 of "null".
 variable "iso_checksum" {
-  type    = string
-  description = "The checksum value of `iso_url`."
-  default = "674441960ca1ba2de08ad4e50c9fde98"
+  type        = string
+  description = "The checksum of `iso_url` (is required for `packer validate`)"
+  default     = "674441960ca1ba2de08ad4e50c9fde98" # value is md5 of "null"
 }
 
 variable "vm_name" {
-  type    = string
-  description = "The name of the host."
-  default = "null"
+  type        = string
+  description = "Virtual machine name"
+  default     = "null"
 }
 
 variable "boot_command" {
-  type    = list(string)
-  description = "Keys to type when the vm is first booted."
-  default = []
+  type        = list(string)
+  description = "Keys to type when the vm is first booted"
+  default     = []
 }
 
 variable "ssh_username" {
-  type    = string
-  default = "vagrant"
+  type        = string
+  description = "SSH user name"
+  default     = "vagrant"
 }
 
 variable "ssh_password" {
-  type    = string
-  default = "vagrant"
+  type        = string
+  description = "SSH user password"
+  default     = "vagrant"
 }
 
+# To change this value, first create a salt using `openssl rand -base64 9`
+# command, then create a password using the salt and command
+# `mkdpasswd -m sha-512 vagrant -S <output of openssl>`.
+# Encrypted password here is "vagrant".
 variable "ssh_password_sha256" {
-  type = string
-  # First create a salt `openssl rand -base64 9`. Then create a password
-  # using the salt `mkpasswd -m sha-512 vagrant -S <output of openssl>`.
-  # Encrypted password here is vagrant.
-  default = "$6$ihLAVm9evpqz$tqwrwpxQ89UdQtIOdBohtHU/2xrQJ4RgPLpDUXtGc1AGi42U1TFqB2oupVOSdnfXvMPREVb1uL/E0lr37MQ840"
+  type        = string
+  description = "SSH user password in sha256 format"
+  default     = "$6$ihLAVm9evpqz$tqwrwpxQ89UdQtIOdBohtHU/2xrQJ4RgPLpDUXtGc1AGi42U1TFqB2oupVOSdnfXvMPREVb1uL/E0lr37MQ840"
 }
 
 variable "ssh_forwarded_port" {
-  type    = string
-  default = "22222"
+  type        = string
+  description = "Forwarded SSH port number"
+  default     = "22222"
 }
 
-# Do not show GUI process by default
+variable "ssh_timeout" {
+  type        = string
+  description = "SSH connection timeout"
+  default     = "20m"
+}
+
+variable "ssh_handshake_attempts" {
+  type        = string
+  description = "Number of SSH connection attempts"
+  default     = "40"
+}
+
 variable "headless" {
-  type = bool
-  default = true
+  type        = bool
+  description = "Do not show GUI process by default"
+  default     = true
 }
 
-# Cloud-init will try to find "user-data" and "meta-data" files
-# right after the root location "/", so it is extremely important to use
-# the following datasource format: http://{{ .HTTPIP }}:{{ .HTTPPort }}/
-# Otherwise, cloud-init ignores "user-data" file and will use its own
-# fallback datasource.
+# Cloud-init will try to find the "user-data" and "meta-data" files in the
+# root location, so it is important to use the following datasource format:
+# http://{{ .HTTPIP }}:{{ .HTTPPort }}/. Otherwise cloud-init ignores
+# the "user-data" file and will use its own fallback datasource.
 source "virtualbox-iso" "ubuntu" {
   vm_name       = var.vm_name
   guest_os_type = "Ubuntu_64"
@@ -85,14 +98,14 @@ source "virtualbox-iso" "ubuntu" {
   ssh_username           = var.ssh_username
   ssh_password           = var.ssh_password
   ssh_port               = 22
-  ssh_timeout            = "20m"
-  ssh_handshake_attempts = "40"
+  ssh_timeout            = var.ssh_timeout
+  ssh_handshake_attempts = var.ssh_handshake_attempts
   host_port_min          = var.ssh_forwarded_port
   host_port_max          = var.ssh_forwarded_port
 
-  cpus      = "2"
-  memory    = "2048"
-  disk_size = "7000"
+  cpus      = "4"
+  memory    = "4096"
+  disk_size = "10000"
   format    = "ova"
 
   shutdown_command = "echo '${var.ssh_password}' | sudo -S shutdown -P now"
@@ -101,7 +114,7 @@ source "virtualbox-iso" "ubuntu" {
   # Instead of keeping an empty meta-data file in the repository,
   # serve the empty location "/meta-data" by HTTP.
   http_content = {
-    "/user-data" = templatefile("http/user-data.pkrtpl.hcl", { var = var }),
+    "/user-data" = templatefile("../http/user-data.pkrtpl.hcl", { var = var }),
     "/meta-data" = ""
   }
 
@@ -112,8 +125,7 @@ source "virtualbox-iso" "ubuntu" {
     ["modifyvm", "{{ .Name }}", "--rtcuseutc", "off"],
     ["setextradata", "{{ .Name }}", "GUI/SuppressMessages", "all"],
     ["modifyvm", "{{ .Name }}", "--nat-localhostreachable1", "on"],
-    # Scale factor can be useful when debugging with the GUI enabled,
-    # when `headless = false`.
+    # scale factor is useful when the GUI enabled (`headless = false`)
     ["setextradata", "{{ .Name }}", "GUI/ScaleFactor", "2.20"]
   ]
   boot_wait              = "5s"
@@ -136,7 +148,7 @@ build {
   provisioner "shell" {
     execute_command = "echo '${var.ssh_password}' | {{ .Vars }} sudo -E -S '{{ .Path }}'"
     scripts = [
-      "http/virtualbox-provision.sh"
+      "virtualbox.sh"
     ]
   }
 
