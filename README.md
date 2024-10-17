@@ -8,10 +8,24 @@ It supports a large variety of cloud infrastructures.
 * No more ad hoc, manual creation of AMIs
 * Intended to be run from a CI system
 
-## Quick start
+## Usage examples
 
-`packer init .`
+### Virtualbox and Ubuntu Noble
 
-## Building
+```sh
+pushd virtualbox && packer init . && popd
 
-`packer build -var-file=vars/(focal|jammy).pkvars.hcl (vmware|virtualbox).pkr.hcl`
+packer build -var-file=vars/noble.pkvars.hcl virtualbox/virtualbox.pkr.hcl
+```
+
+### VMware and Ubuntu Focal
+
+```sh
+pushd vmware && packer init . && popd
+
+packer build -var-file=vars/focal.pkvars.hcl vmware/vmware.pkr.hcl
+```
+
+## Feedback
+
+[Suggestions and improvements](https://github.com/exdial/packer/issues).
